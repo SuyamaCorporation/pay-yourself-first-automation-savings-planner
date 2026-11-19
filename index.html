@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>先払い自動化・貯金率プランナー</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .pie-chart {
+      background: conic-gradient(var(--savings-color) 0% var(--savings-pct), transparent var(--savings-pct) 100%);
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-teal-950 via-cyan-900 to-sky-900 min-h-screen text-white">
+  <div class="max-w-3xl mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <div class="text-5xl mb-3">💳</div>
+      <h1 class="text-3xl font-bold text-teal-300 mb-2">先払い自動化・貯金率プランナー</h1>
+      <p class="text-cyan-200 text-sm">「先に自分に払う」— 富を築く最も確実な戦略</p>
+    </div>
+
+    <!-- Concept -->
+    <div class="bg-teal-900/50 rounded-2xl p-5 mb-6 border border-teal-700">
+      <h2 class="text-lg font-semibold text-teal-300 mb-3">先払い自動化とは？</h2>
+      <p class="text-teal-100 text-sm leading-relaxed">
+        収入を受け取ったら<strong class="text-yellow-300">真っ先に</strong>貯金・投資口座に自動振込する戦略です。
+        「余ったら貯金する」ではなく「先に貯金して、残りで生活する」という発想の逆転が核心です。
+        自動化することで意志力を使わず、感情的な支出を防げます。ウォーレン・バフェットも実践した手法です。
+      </p>
+      <div class="flex gap-4 mt-4 flex-wrap">
+        <div class="flex-1 min-w-28 text-center bg-red-500/20 rounded-xl p-3 border border-red-500/30">
+          <div class="text-xs text-red-300 mb-1">従来の方法</div>
+          <div class="text-sm font-semibold text-white">収入 - 支出 = 貯金</div>
+          <div class="text-xs text-red-400 mt-1">残金なし…</div>
+        </div>
+        <div class="text-2xl self-center text-teal-400">→</div>
+        <div class="flex-1 min-w-28 text-center bg-green-500/20 rounded-xl p-3 border border-green-500/30">
+          <div class="text-xs text-green-300 mb-1">先払い戦略</div>
+          <div class="text-sm font-semibold text-white">収入 - 貯金 = 支出</div>
+          <div class="text-xs text-green-400 mt-1">確実に貯まる！</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Planner -->
+    <div class="bg-teal-900/50 rounded-2xl p-5 mb-6 border border-teal-700">
+      <h2 class="text-lg font-semibold text-teal-300 mb-4">📊 プランナー設定</h2>
+      <div class="space-y-5">
+        <!-- Income Input -->
+        <div>
+          <label class="text-sm text-teal-300 block mb-1">月収（手取り）</label>
+          <div class="flex items-center gap-2">
+            <input type="number" id="income" min="0" step="10000" value="300000"
+              class="flex-1 bg-teal-800/60 border border-teal-500 rounded-xl px-4 py-3 text-white text-lg font-semibold focus:outline-none focus:border-teal-300 transition-all"
+              oninput="updateAll()" />
+            <span class="text-teal-300">円</span>
+          </div>
+        </div>
+
+        <!-- Savings Rate Slider -->
+        <div>
+          <div class="flex justify-between items-center mb-1">
+            <label class="text-sm text-teal-300">先払い貯金率</label>
+            <span id="rate-display" class="text-xl font-bold text-yellow-400">20%</span>
+          </div>
+          <input type="range" id="savings-rate" min="5" max="50" step="1" value="20"
+            class="w-full accent-teal-400"
+            oninput="updateAll()" />
+          <div class="flex justify-between text-xs text-teal-400 mt-1">
+            <span>5%（入門）</span>
+            <span>20%（推奨）</span>
+            <span>50%（積極的）</span>
+          </div>
+        </div>
+
+        <!-- Summary -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="text-center bg-green-500/20 rounded-xl p-4 border border-green-500/30">
+            <div class="text-xs text-green-300 mb-1">先払い貯金額</div>
+            <div id="savings-amount" class="text-2xl font-bold text-green-400">¥60,000</div>
+            <div class="text-xs text-green-300 mt-1">月々自動振込</div>
+          </div>
+          <div class="text-center bg-blue-500/20 rounded-xl p-4 border border-blue-500/30">
+            <div class="text-xs text-blue-300 mb-1">生活費予算</div>
+            <div id="living-amount" class="text-2xl font-bold text-blue-400">¥240,000</div>
+            <div class="text-xs text-blue-300 mt-1">残りで生活</div>
+          </div>
+        </div>
+
+        <!-- Annual/5year projection -->
+        <div class="grid grid-cols-3 gap-3 text-center">
+          <div class="bg-teal-800/40 rounded-xl p-3">
+            <div class="text-xs text-teal-300 mb-1">年間貯金額</div>
+            <div id="annual-savings" class="text-lg font-bold text-teal-200">¥720,000</div>
+          </div>
+          <div class="bg-teal-800/40 rounded-xl p-3">
+            <div class="text-xs text-teal-300 mb-1">5年後（単純）</div>
+            <div id="five-year-savings" class="text-lg font-bold text-teal-200">¥3,600,000</div>
+          </div>
+          <div class="bg-teal-800/40 rounded-xl p-3">
+            <div class="text-xs text-teal-300 mb-1">5年後（複利5%）</div>
+            <div id="five-year-compound" class="text-lg font-bold text-yellow-300">¥3,978,789</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expense Categories + Pie -->
+    <div class="bg-teal-900/50 rounded-2xl p-5 mb-6 border border-teal-700">
+      <h2 class="text-lg font-semibold text-teal-300 mb-4">🍕 生活費の内訳設定</h2>
+      <div class="flex gap-4 flex-col sm:flex-row">
+        <!-- Pie Chart -->
+        <div class="flex flex-col items-center justify-center sm:w-48">
+          <div id="pie-container" class="relative w-40 h-40">
+            <div id="pie-chart" class="w-40 h-40 rounded-full" style="background: conic-gradient(#10b981 0% 20%, #3b82f6 20% 100%)"></div>
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="bg-teal-900 rounded-full w-20 h-20 flex flex-col items-center justify-center">
+                <div class="text-xs text-teal-300">貯金率</div>
+                <div id="pie-center" class="text-xl font-bold text-green-400">20%</div>
+              </div>
+            </div>
+          </div>
+          <div id="pie-legend" class="mt-3 space-y-1 text-xs"></div>
+        </div>
+
+        <!-- Categories -->
+        <div class="flex-1 space-y-2" id="categories-container">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+      <div class="mt-3 flex gap-2 justify-end">
+        <button onclick="addCategory()" class="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-full text-sm border border-teal-400 transition-all">
+          + カテゴリ追加
+        </button>
+      </div>
+      <div id="budget-warning" class="mt-3 hidden bg-red-900/40 rounded-xl p-3 border border-red-500/40 text-sm text-red-300"></div>
+    </div>
+
+    <!-- Tips -->
+    <div class="bg-teal-900/50 rounded-2xl p-5 border border-teal-700">
+      <h2 class="text-lg font-semibold text-teal-300 mb-3">🤖 自動化の実践ステップ</h2>
+      <ol class="space-y-3">
+        <li class="flex gap-3">
+          <span class="bg-teal-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0">1</span>
+          <div>
+            <div class="text-sm font-semibold text-white">専用口座を開設する</div>
+            <div class="text-xs text-teal-300">生活費口座とは別に「貯金専用口座」を作成。できれば利率の高いネット銀行がおすすめ</div>
+          </div>
+        </li>
+        <li class="flex gap-3">
+          <span class="bg-teal-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0">2</span>
+          <div>
+            <div class="text-sm font-semibold text-white">給与日翌日に自動振替を設定</div>
+            <div class="text-xs text-teal-300">銀行のアプリで「定額自動振替」を設定。給与日の翌営業日に貯金額が自動移動</div>
+          </div>
+        </li>
+        <li class="flex gap-3">
+          <span class="bg-teal-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0">3</span>
+          <div>
+            <div class="text-sm font-semibold text-white">投資分はつみたてNISAで自動投資</div>
+            <div class="text-xs text-teal-300">貯金の一部はS&P500/全世界株インデックスへの毎月自動積立に回す。非課税メリット活用</div>
+          </div>
+        </li>
+        <li class="flex gap-3">
+          <span class="bg-teal-600 text-white text-xs font-bold w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0">4</span>
+          <div>
+            <div class="text-sm font-semibold text-white">残った金額だけで生活する</div>
+            <div class="text-xs text-teal-300">「足りない感」は最初だけ。3ヶ月で慣れる。クレジットカードは生活費口座に紐付けておく</div>
+          </div>
+        </li>
+      </ol>
+    </div>
+
+    <p class="text-center text-teal-400/50 text-xs mt-6">データはブラウザに自動保存されます</p>
+  </div>
+
+  <script>
+    var categories = JSON.parse(localStorage.getItem('payFirst-categories') || 'null') || [
+      { name: '家賃・住居費', amount: 80000, color: '#3b82f6' },
+      { name: '食費', amount: 50000, color: '#f59e0b' },
+      { name: '交通費', amount: 15000, color: '#10b981' },
+      { name: '光熱費', amount: 15000, color: '#8b5cf6' },
+      { name: '通信費', amount: 8000, color: '#ec4899' },
+      { name: 'その他', amount: 32000, color: '#6b7280' }
+    ];
+
+    function saveData() {
+      localStorage.setItem('payFirst-categories', JSON.stringify(categories));
+      var income = parseInt(document.getElementById('income').value) || 0;
+      var rate = parseInt(document.getElementById('savings-rate').value) || 0;
+      localStorage.setItem('payFirst-income', income);
+      localStorage.setItem('payFirst-rate', rate);
+    }
+
+    function updateAll() {
+      var income = parseInt(document.getElementById('income').value) || 0;
+      var rate = parseInt(document.getElementById('savings-rate').value) || 20;
+      var savingsAmt = Math.round(income * rate / 100);
+      var livingAmt = income - savingsAmt;
+
+      document.getElementById('rate-display').textContent = rate + '%';
+      document.getElementById('savings-amount').textContent = '¥' + savingsAmt.toLocaleString();
+      document.getElementById('living-amount').textContent = '¥' + livingAmt.toLocaleString();
+      document.getElementById('annual-savings').textContent = '¥' + (savingsAmt * 12).toLocaleString();
+      document.getElementById('five-year-savings').textContent = '¥' + (savingsAmt * 12 * 5).toLocaleString();
+
+      // Compound 5% over 5 years
+      var monthlyRate = 0.05 / 12;
+      var months = 60;
+      var compound = savingsAmt * ((Math.pow(1 + monthlyRate, months) - 1) / monthlyRate);
+      document.getElementById('five-year-compound').textContent = '¥' + Math.round(compound).toLocaleString();
+
+      document.getElementById('pie-center').textContent = rate + '%';
+      updatePie(rate, livingAmt);
+      checkBudget(livingAmt);
+      saveData();
+    }
+
+    function updatePie(savingsRate, livingAmt) {
+      var totalExpenses = categories.reduce(function(a, c) { return a + c.amount; }, 0);
+      var income = parseInt(document.getElementById('income').value) || 0;
+
+      // Build conic gradient
+      var parts = [];
+      var savingsPct = savingsRate;
+      parts.push('#10b981 0% ' + savingsPct + '%');
+
+      var remaining = 100 - savingsPct;
+      var runningPct = savingsPct;
+      categories.forEach(function(cat) {
+        var pct = income > 0 ? (cat.amount / income) * 100 : 0;
+        var end = runningPct + pct;
+        parts.push(cat.color + ' ' + runningPct + '% ' + end + '%');
+        runningPct = end;
+      });
+
+      document.getElementById('pie-chart').style.background = 'conic-gradient(' + parts.join(', ') + ')';
+
+      // Legend
+      var legend = document.getElementById('pie-legend');
+      legend.innerHTML = '';
+      var allItems = [{ name: '先払い貯金', color: '#10b981', pct: savingsPct }];
+      categories.forEach(function(cat) {
+        allItems.push({ name: cat.name, color: cat.color, pct: income > 0 ? (cat.amount / income) * 100 : 0 });
+      });
+      allItems.forEach(function(item) {
+        var div = document.createElement('div');
+        div.className = 'flex items-center gap-1.5';
+        var dot = document.createElement('div');
+        dot.className = 'w-2.5 h-2.5 rounded-full flex-shrink-0';
+        dot.style.backgroundColor = item.color;
+        var label = document.createElement('span');
+        label.className = 'text-teal-200';
+        label.textContent = item.name + ' (' + item.pct.toFixed(0) + '%)';
+        div.appendChild(dot);
+        div.appendChild(label);
+        legend.appendChild(div);
+      });
+    }
+
+    function checkBudget(livingAmt) {
+      var totalExpenses = categories.reduce(function(a, c) { return a + c.amount; }, 0);
+      var warning = document.getElementById('budget-warning');
+      if (totalExpenses > livingAmt) {
+        warning.classList.remove('hidden');
+        warning.textContent = '⚠️ 生活費の合計（¥' + totalExpenses.toLocaleString() + '）が残り予算（¥' + livingAmt.toLocaleString() + '）を超えています。各カテゴリを見直してください。';
+      } else {
+        warning.classList.add('hidden');
+      }
+    }
+
+    function renderCategories() {
+      var container = document.getElementById('categories-container');
+      container.innerHTML = '';
+      categories.forEach(function(cat, i) {
+        var row = document.createElement('div');
+        row.className = 'flex gap-2 items-center';
+
+        var colorDot = document.createElement('div');
+        colorDot.className = 'w-3 h-3 rounded-full flex-shrink-0';
+        colorDot.style.backgroundColor = cat.color;
+
+        var nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.value = cat.name;
+        nameInput.className = 'flex-1 bg-teal-800/60 border border-teal-600 rounded-lg px-3 py-1.5 text-white text-sm focus:outline-none focus:border-teal-400';
+        nameInput.oninput = (function(idx) { return function() { categories[idx].name = this.value; updateAll(); }; })(i);
+
+        var amtInput = document.createElement('input');
+        amtInput.type = 'number';
+        amtInput.value = cat.amount;
+        amtInput.min = '0';
+        amtInput.step = '1000';
+        amtInput.className = 'w-28 bg-teal-800/60 border border-teal-600 rounded-lg px-3 py-1.5 text-white text-sm text-right focus:outline-none focus:border-teal-400';
+        amtInput.oninput = (function(idx) { return function() { categories[idx].amount = parseInt(this.value) || 0; updateAll(); }; })(i);
+
+        var yen = document.createElement('span');
+        yen.className = 'text-teal-400 text-xs';
+        yen.textContent = '円';
+
+        var delBtn = document.createElement('button');
+        delBtn.className = 'text-teal-500 hover:text-red-400 transition-all text-sm flex-shrink-0';
+        delBtn.textContent = '✕';
+        delBtn.onclick = (function(idx) { return function() { categories.splice(idx, 1); renderCategories(); updateAll(); }; })(i);
+
+        row.appendChild(colorDot);
+        row.appendChild(nameInput);
+        row.appendChild(amtInput);
+        row.appendChild(yen);
+        if (categories.length > 1) row.appendChild(delBtn);
+        container.appendChild(row);
+      });
+    }
+
+    function addCategory() {
+      var colors = ['#f97316', '#06b6d4', '#a855f7', '#ef4444', '#84cc16', '#f59e0b'];
+      categories.push({ name: '新カテゴリ', amount: 10000, color: colors[categories.length % colors.length] });
+      renderCategories();
+      updateAll();
+    }
+
+    // Load saved data
+    var savedIncome = localStorage.getItem('payFirst-income');
+    var savedRate = localStorage.getItem('payFirst-rate');
+    if (savedIncome) document.getElementById('income').value = savedIncome;
+    if (savedRate) document.getElementById('savings-rate').value = savedRate;
+
+    renderCategories();
+    updateAll();
+  </script>
+</body>
+</html>
